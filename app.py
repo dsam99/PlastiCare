@@ -5,16 +5,28 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from flask import Flask
 from flask import request
+from datetime import date
+import datetime
 
 from imageai.Detection import ObjectDetection
 from PIL import Image
+
+import plastic_dict
+
+user_objects = [["fork", 6, datetime.datetime(2020, 1, 12)],
+				["backpack", 500, datetime.datetime(2020, 2, 12)],
+				["cup", 75, datetime.datetime(2020, 3, 15)],
+				["fork", 6, datetime.datetime(2020, 4, 1)],
+				["fork", 6, datetime.datetime(2020, 5, 15)],
+				["cellphone", 87, datetime.datetime(2020, 7, 18)],
+				]
 
 def load_object_plastic_map():
 	'''
 	Function to load a dictionary that is the amount of plastic in a given item
 	'''
 
-	return {}
+	return plastic_dict.plastic_dict
 
 def no_input():
 	'''
@@ -59,11 +71,39 @@ def predict():
 												  input_type="array", input_image=im_array,
 												  output_type="array",
 												  minimum_percentage_probability=70)
+		to_return = ""
 		for eachItem in detection[1]:
-			print(eachItem["name"] , " : ", eachItem["percentage_probability"])
-		return detection
+			name = eachItem["name"] 
+			print(name + " : ", eachItem["percentage_probability"])
+			to_return += name
+			to_return += ":"
+			to_return += str(object_plastic_map[name])
+			to_return += str(",")
+		return to_return
 	else:
 		return no_input()
+
+# function to add to list
+@app.route('/add', methods=['POST', 'GET'])
+def add():
+	
+	if request.method == 'POST':
+		
+		req_data = request.get_json()
+		obj = req_data["object"]
+		plastic_amt = req_data["plastic"]
+		dt = req_data["date"]
+		dt = datetime.datetime(dt[0], dt[1], dt[2])
+		user_objects.append([obj, plastic_amt, dt])
+	return "Added Succesfully!"
+
+# function to get list
+@app.route('/list', methods=['GET'])
+def get_list():
+	if request.method == 'GET':
+		return str(user_objects)
+	else:
+		return "Rip Big Fail"
 
 @app.route('/')
 def main():
