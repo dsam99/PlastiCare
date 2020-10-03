@@ -7,7 +7,7 @@ from flask import Flask
 from flask import request
 from datetime import date
 import datetime
-
+import tensorflow as tf
 from imageai.Detection import ObjectDetection
 from PIL import Image
 
@@ -73,7 +73,7 @@ def predict():
 												  minimum_percentage_probability=70)
 		to_return = ""
 		for eachItem in detection[1]:
-			name = eachItem["name"] 
+			name = eachItem["name"]
 			print(name + " : ", eachItem["percentage_probability"])
 			to_return += name
 			to_return += ":"
@@ -86,9 +86,9 @@ def predict():
 # function to add to list
 @app.route('/add', methods=['POST', 'GET'])
 def add():
-	
+
 	if request.method == 'POST':
-		
+
 		req_data = request.get_json()
 		obj = req_data["object"]
 		plastic_amt = req_data["plastic"]
