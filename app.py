@@ -26,9 +26,6 @@ def no_input():
 app = Flask(__name__)
 
 
-
-
-
 def get_plastic_amounts(detection_obj):
 	'''
 	Function to get the amount of plastic for elements in a list
@@ -57,11 +54,7 @@ def predict():
 		req_data = request.get_json()
 		image = req_data["image"]
 		im_array = np.array(image,dtype=np.uint8)
-		# saving image
-		# im_array = np.array(image, dtype=np.uint8)
-		# new_image = Image.fromarray(im_array)
-		# new_image.save('temp_img.png')
-		# percentage threshold of 70%
+
 		detection = detector.detectCustomObjectsFromImage(custom_objects=custom,
 												  input_type="array", input_image=im_array,
 												  output_type="array",
