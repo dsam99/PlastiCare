@@ -1,0 +1,1 @@
+['Backpack: 500 grams', 'Plastic cup: 75 grams', 'Plastic fork: 6 grams', 'Umbrella: 100 grams', 'Cellphone: 87 grams']
