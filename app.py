@@ -8,10 +8,11 @@ from flask import request
 from datetime import date
 import datetime
 import tensorflow as tf
-from imageai.Detection import ObjectDetection
 from PIL import Image
 
 import plastic_dict
+from imageai.Detection import ObjectDetection
+# import object_detection
 
 user_objects = [["fork", 6, datetime.datetime(2020, 1, 12)],
 				["backpack", 500, datetime.datetime(2020, 2, 12)],
@@ -20,13 +21,6 @@ user_objects = [["fork", 6, datetime.datetime(2020, 1, 12)],
 				["fork", 6, datetime.datetime(2020, 5, 15)],
 				["cellphone", 87, datetime.datetime(2020, 7, 18)],
 				]
-
-def load_object_plastic_map():
-	'''
-	Function to load a dictionary that is the amount of plastic in a given item
-	'''
-
-	return plastic_dict.plastic_dict
 
 def no_input():
 	'''
@@ -47,22 +41,25 @@ def get_plastic_amounts(detection_obj):
 
 @app.route('/predict', methods=['POST', 'GET'])
 def predict():
-	# loading model here in background
-	detector = ObjectDetection()
 
-	# use fat yolo since tiny yolo sux
-	detector.setModelTypeAsYOLOv3()
-	path = "./models/yolo.h5"
-
-	detector.setModelPath(path)
-	detector.loadModel()
-
-	object_plastic_map = load_object_plastic_map()
-	# creating list of custom objects
-	custom = detector.CustomObjects(backpack=True, umbrella=True, handbag=True, tie=True, toothbrush=True, cup=True,
-									fork=True, knife=True, spoon=True, suitcase=True, tennis_racket=True, chair=True,
-									remote=True, mouse=True, keyboard=True, cell_phone=True, scissors=True)
 	if request.method == 'POST':
+
+		# loading model here in background
+		detector = ObjectDetection()
+
+		# use fat yolo since tiny yolo sux
+		detector.setModelTypeAsYOLOv3()
+		path = "./models/yolo.h5"
+
+		detector.setModelPath(path)
+		detector.loadModel()
+
+		# creating list of custom objects
+		custom = detector.CustomObjects(backpack=True, umbrella=True, handbag=True, tie=True, toothbrush=True, cup=True,
+										fork=True, knife=True, spoon=True, remote=True, cell_phone=True,)
+
+		object_plastic_map = plastic_dict.plastic_dict
+
 		req_data = request.get_json()
 		image = req_data["image"]
 		im_array = np.array(image,dtype=np.uint8)
@@ -71,6 +68,16 @@ def predict():
 												  input_type="array", input_image=im_array,
 												  output_type="array",
 												  minimum_percentage_probability=70)
+
+		# del detector
+		# tf.reset_default_graph()
+		# from tensorflow.python.framework import ops
+		# ops.reset_default_graph()
+
+		from keras import backend as K
+		K.clear_session()
+
+
 		to_return = ""
 		for eachItem in detection[1]:
 			name = eachItem["name"]
