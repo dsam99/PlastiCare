@@ -25,22 +25,9 @@ def no_input():
 
 app = Flask(__name__)
 
-# loading model here in background
-detector = ObjectDetection()
 
-# use fat yolo since tiny yolo sux
-detector.setModelTypeAsYOLOv3()
-path = "./models/yolo.h5"
 
-detector.setModelPath(path)
-detector.loadModel()
 
-object_plastic_map = load_object_plastic_map()
-
-# creating list of custom objects
-custom = detector.CustomObjects(backpack=True, umbrella=True, handbag=True, tie=True, toothbrush=True, cup=True, 
-								fork=True, knife=True, spoon=True, suitcase=True, tennis_racket=True, chair=True, 
-								remote=True, mouse=True, keyboard=True, cell_phone=True, scissors=True)
 
 def get_plastic_amounts(detection_obj):
 	'''
@@ -51,22 +38,35 @@ def get_plastic_amounts(detection_obj):
 
 @app.route('/predict', methods=['POST', 'GET'])
 def predict():
+	# loading model here in background
+	detector = ObjectDetection()
+
+	# use fat yolo since tiny yolo sux
+	detector.setModelTypeAsYOLOv3()
+	path = "./models/yolo.h5"
+
+	detector.setModelPath(path)
+	detector.loadModel()
+
+	object_plastic_map = load_object_plastic_map()
+	# creating list of custom objects
+	custom = detector.CustomObjects(backpack=True, umbrella=True, handbag=True, tie=True, toothbrush=True, cup=True,
+									fork=True, knife=True, spoon=True, suitcase=True, tennis_racket=True, chair=True,
+									remote=True, mouse=True, keyboard=True, cell_phone=True, scissors=True)
 	if request.method == 'POST':
 		req_data = request.get_json()
 		image = req_data["image"]
-		im_array = np.array(image)
+		im_array = np.array(image,dtype=np.uint8)
 		# saving image
 		# im_array = np.array(image, dtype=np.uint8)
 		# new_image = Image.fromarray(im_array)
 		# new_image.save('temp_img.png')
-
 		# percentage threshold of 70%
-		detection = detector.detectCustomObjectsFromImage(custom_objects=custom, 
-												  input_type="array", input_image=im_array, 
+		detection = detector.detectCustomObjectsFromImage(custom_objects=custom,
+												  input_type="array", input_image=im_array,
 												  output_type="array",
 												  minimum_percentage_probability=70)
-		
-		for eachItem in detection:
+		for eachItem in detection[1]:
 			print(eachItem["name"] , " : ", eachItem["percentage_probability"])
 		return detection
 	else:
@@ -78,5 +78,3 @@ def main():
 
 if __name__ == '__main__':
 	app.run(debug=True)
-
-
