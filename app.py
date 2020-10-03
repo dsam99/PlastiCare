@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+import json
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from flask import Flask
@@ -53,22 +54,20 @@ def predict():
 	if request.method == 'POST':
 		req_data = request.get_json()
 		image = req_data["image"]
-		# image = np.array(image)
-
+		im_array = np.array(image)
 		# saving image
-		im_array = np.array(image, dtype=np.uint8)
-		new_image = Image.fromarray(im_array)
-		new_image.save('temp_img.png')
-
-		# create image
+		# im_array = np.array(image, dtype=np.uint8)
+		# new_image = Image.fromarray(im_array)
+		# new_image.save('temp_img.png')
 
 		# percentage threshold of 70%
 		detection = detector.detectCustomObjectsFromImage(custom_objects=custom, 
-														  input_image="temp_img.png", output_image_path="temp_out.png",
-														  minimum_percentage_probability=70)		
+												  input_type="array", input_image=im_array, 
+												  output_type="array",
+												  minimum_percentage_probability=70)
+		
 		for eachItem in detection:
 			print(eachItem["name"] , " : ", eachItem["percentage_probability"])
-			# print(detection)
 		return detection
 	else:
 		return no_input()
