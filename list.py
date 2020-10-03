@@ -1,1 +1,2 @@
-['Backpack: 500 grams', 'Plastic cup: 75 grams', 'Plastic fork: 6 grams', 'Umbrella: 100 grams', 'Cellphone: 87 grams']
+plastic_dict = {"backpack": 500, "cup": 75, 'fork': 6, 
+				'umbrella': 100, 'cellphone': 87}
