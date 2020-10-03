@@ -6,7 +6,7 @@ from flask import Flask
 from flask import request
 
 from imageai.Detection import ObjectDetection
-
+from PIL import Image
 
 def load_object_plastic_map():
 	'''
@@ -26,9 +26,11 @@ app = Flask(__name__)
 
 # loading model here in background
 detector = ObjectDetection()
-detector.setModelTypeAsTinyYOLOv3()
 
-path = "./models/yolo-tiny.h5"
+# use fat yolo since tiny yolo sux
+detector.setModelTypeAsYOLOv3()
+path = "./models/yolo.h5"
+
 detector.setModelPath(path)
 detector.loadModel()
 
@@ -51,14 +53,19 @@ def predict():
 	if request.method == 'POST':
 		req_data = request.get_json()
 		image = req_data["image"]
-		print(image)
-		image = OD.preprocess(image)
+		# image = np.array(image)
+
+		# saving image
+		im_array = np.array(image, dtype=np.uint8)
+		new_image = Image.fromarray(im_array)
+		new_image.save('temp_img.png')
+
+		# create image
 
 		# percentage threshold of 70%
 		detection = detector.detectCustomObjectsFromImage(custom_objects=custom, 
-														  input_type="array", input_image=image, 
-														  minimum_percentage_probability=70)
-		
+														  input_image="temp_img.png", output_image_path="temp_out.png",
+														  minimum_percentage_probability=70)		
 		for eachItem in detection:
 			print(eachItem["name"] , " : ", eachItem["percentage_probability"])
 			# print(detection)
