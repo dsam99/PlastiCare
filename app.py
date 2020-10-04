@@ -8,7 +8,12 @@ from flask import request
 from datetime import date
 import datetime
 import tensorflow as tf
+import ast
+import base64
+from io import BytesIO
 from PIL import Image
+
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 import plastic_dict
 from imageai.Detection import ObjectDetection
@@ -34,7 +39,7 @@ app = Flask(__name__)
 
 def str_to_lol(string_lol):
 	strs = string_lol.replace('[','').split('],')
-	lists = [map(int, s.replace(']','').split(',')) for s in strs]
+	lists = [list(map(int, s.replace(']','').split(','))) for s in strs]
 	return lists
 
 def get_plastic_amounts(detection_obj):
@@ -48,8 +53,9 @@ def get_plastic_amounts(detection_obj):
 def predict():
 
 	if request.method == 'POST':
-
-		print(request.form)
+		from keras import backend as K
+		K.clear_session()
+		print("POST")
 
 		# loading model here in background
 		detector = ObjectDetection()
@@ -62,39 +68,59 @@ def predict():
 		detector.loadModel()
 
 		# creating list of custom objects
-		custom = detector.CustomObjects(backpack=True, umbrella=True, handbag=True, tie=True, toothbrush=True, cup=True,
-										fork=True, knife=True, spoon=True, remote=True, cell_phone=True,)
+		custom = detector.CustomObjects(backpack=True, umbrella=True, cup=True)
 
 		object_plastic_map = plastic_dict.plastic_dict
 
 		# req_data = request.get_json()
 		# image = req_data["image"]
+
+		print(list(request.form.keys()))
+
 		str_image = request.form["image"]
+		print(str_image[:20])
+		str_image = base64.b64decode(str_image)
+		print(str_image[:20])
+
+		# str_image = str_image.decode('utf-8')
+
+		# str_image = base64_bytes.decode("base64")
+		# print(str_image)
 
 		# converting bytes information into string into np array
 		# str_image = image.decode("utf-8")
 		# print(str_image)
-		image = str_to_lol(str_image)
 
+
+
+		image = Image.open(BytesIO(str_image)).convert("RGB")
+
+		# image = ast.literal_eval(str_image)
+		# print(image)
 		im_array = np.array(image,dtype=np.uint8)
+		# print(np.shape(image))
 		print(np.shape(im_array))
 		detection = detector.detectCustomObjectsFromImage(custom_objects=custom,
 												  input_type="array", input_image=im_array,
 												  output_type="array",
 												  minimum_percentage_probability=70)
 
-		from keras import backend as K
 		K.clear_session()
-
 
 		to_return = ""
 		for eachItem in detection[1]:
 			name = eachItem["name"]
 			print(name + " : ", eachItem["percentage_probability"])
 			to_return += name
-			to_return += ":"
-			to_return += str(object_plastic_map[name])
+			# to_return += ":"
+			# to_return += str(object_plastic_map[name])
 			to_return += str(",")
+
+		if to_return == "":
+			print("nothing detected")
+
+		print(to_return)
+
 		return to_return
 	else:
 		return no_input()

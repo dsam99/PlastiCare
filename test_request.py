@@ -4,10 +4,14 @@ from PIL import Image
 
 def test_obj_detection():
 	# im = Image.open("test_images/103656324_190160012323275_1284606866924854408_n.png")
-	im = Image.open("test_images/test_backpack.jpg")
-	image = np.array(im)
-	image = image.tolist()
-	r = requests.post('http://127.0.0.1:5000/predict', json={'image':image})
+	# im = Image.open("test_images/test_backpack.jpg")
+	# image = np.array(im)
+	# image = image.tolist()
+
+	with open("test_images/test2.txt", "r") as f:
+		list_string = f.read()
+
+	r = requests.post('http://0.0.0.0:8080/predict', data={'image':list_string})
 	print(r.text)
 
 def test_add_item():
