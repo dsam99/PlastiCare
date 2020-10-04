@@ -32,6 +32,11 @@ def no_input():
 app = Flask(__name__)
 
 
+def str_to_lol(string_lol):
+	strs = string_lol.replace('[','').split('],')
+	lists = [map(int, s.replace(']','').split(',')) for s in strs]
+	return lists
+
 def get_plastic_amounts(detection_obj):
 	'''
 	Function to get the amount of plastic for elements in a list
@@ -43,6 +48,8 @@ def get_plastic_amounts(detection_obj):
 def predict():
 
 	if request.method == 'POST':
+
+		print(request.form)
 
 		# loading model here in background
 		detector = ObjectDetection()
@@ -60,19 +67,21 @@ def predict():
 
 		object_plastic_map = plastic_dict.plastic_dict
 
-		req_data = request.get_json()
-		image = req_data["image"]
-		im_array = np.array(image,dtype=np.uint8)
+		# req_data = request.get_json()
+		# image = req_data["image"]
+		str_image = request.form["image"]
 
+		# converting bytes information into string into np array
+		# str_image = image.decode("utf-8")
+		# print(str_image)
+		image = str_to_lol(str_image)
+
+		im_array = np.array(image,dtype=np.uint8)
+		print(np.shape(im_array))
 		detection = detector.detectCustomObjectsFromImage(custom_objects=custom,
 												  input_type="array", input_image=im_array,
 												  output_type="array",
 												  minimum_percentage_probability=70)
-
-		# del detector
-		# tf.reset_default_graph()
-		# from tensorflow.python.framework import ops
-		# ops.reset_default_graph()
 
 		from keras import backend as K
 		K.clear_session()
